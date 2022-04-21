@@ -60,4 +60,8 @@ public class Show {
         this.performances.add(performance);
     }
 
+    public void addCategory(Category category) {
+        this.categories.add(category);
+    }
+
 }
