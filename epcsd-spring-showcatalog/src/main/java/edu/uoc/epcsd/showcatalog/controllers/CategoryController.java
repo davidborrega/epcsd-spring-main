@@ -2,6 +2,7 @@ package edu.uoc.epcsd.showcatalog.controllers;
 
 import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
+import edu.uoc.epcsd.showcatalog.requests.CategoryRequest;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
@@ -40,8 +41,9 @@ public class CategoryController {
 
 
     @PostMapping
-    public ResponseEntity<?> createCategory(@RequestBody @NonNull Category category) {
+    public ResponseEntity<?> createCategory(@RequestBody @NonNull CategoryRequest request) {
         log.trace("createCategory");
+        Category category = mapToCategory(request);
         categoryRepository.save(category);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -57,6 +59,13 @@ public class CategoryController {
                 .orElseThrow(() -> new ResourceNotFoundException("Category Not found for this id: " + categoryId));
         categoryRepository.delete(category);
         return ResponseEntity.ok().body("Category deleted with success!");
+    }
+
+    private Category mapToCategory(CategoryRequest request) {
+        Category category = new Category();
+        category.setDescription(request.getDescription());
+        category.setName(request.getName());
+        return category;
     }
 
 }
