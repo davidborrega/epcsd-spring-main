@@ -1,8 +1,7 @@
 package edu.uoc.epcsd.showcatalog.controllers;
 
-import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.entities.Show;
-import edu.uoc.epcsd.showcatalog.repositories.ShowRepository;
+import edu.uoc.epcsd.showcatalog.services.CatalogService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +16,7 @@ import java.util.List;
 public class ShowController {
 
     @Autowired
-    private ShowRepository showRepository;
+    private CatalogService catalogService;
 
     @Autowired
     private KafkaTemplate<String, Show> kafkaTemplate;
@@ -32,7 +31,7 @@ public class ShowController {
         System.out.println("getShows");
         System.out.println("name="+name);
         System.out.println("categoryId="+categoryId);
-        return showRepository.findAll();
+        return catalogService.getAllShows();
     }
 
     @GetMapping("/{id}")
