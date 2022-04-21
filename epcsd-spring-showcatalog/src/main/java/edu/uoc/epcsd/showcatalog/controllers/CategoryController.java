@@ -2,7 +2,6 @@ package edu.uoc.epcsd.showcatalog.controllers;
 
 import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
-import edu.uoc.epcsd.showcatalog.services.CatalogService;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
