@@ -17,6 +17,7 @@ import java.util.List;
 public class Show {
 
     @Id
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -51,9 +52,8 @@ public class Show {
             inverseJoinColumns = @JoinColumn(name = "id_category")
     )
     private List<Category> categories;
-    @ElementCollection(targetClass = Performance.class)
-    @JoinTable(name = "performances")
-    @JoinColumn(name = "show_id", referencedColumnName = "id")
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "show", orphanRemoval = true)
     private List<Performance> performances;
 
     public void addPerformance(Performance performance) {

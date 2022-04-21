@@ -1,14 +1,26 @@
 package edu.uoc.epcsd.showcatalog.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import lombok.*;
+
+import javax.persistence.*;
 import java.sql.Time;
 import java.sql.Date;
 
-@Embeddable
+@Entity
+@Table(name = "performances")
+@ToString
+@Getter
+@Setter
+@EqualsAndHashCode
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Performance {
+
+    @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "date", nullable = false)
     private Date date;
@@ -24,5 +36,9 @@ public class Performance {
 
     @Column(name = "status", nullable = false)
     private boolean status;
+
+    @ManyToOne
+    @JoinColumn(name = "show_id", nullable = false, updatable = false)
+    private Show show;
 
 }
