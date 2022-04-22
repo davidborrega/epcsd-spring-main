@@ -43,12 +43,11 @@ public class ShowController {
         log.trace("getShows");
         if (name == null && categoryId == null) {
             return mapListShowToDTO(showRepository.findAll());
-        } else if (name.isEmpty()) {
+        } else if (name == null) {
             //return showRepository.findBy();
             return mapListShowToDTO(showRepository.findAll());
-        } else if (categoryId <= 0) {
-            //return showRepository.findBy();
-            return mapListShowToDTO(showRepository.findAll());
+        } else if (categoryId == null) {
+            return mapListShowToDTO(showRepository.findByName(name));
         } else {
             //return showRepository.findBy();
             return mapListShowToDTO(showRepository.findAll());
