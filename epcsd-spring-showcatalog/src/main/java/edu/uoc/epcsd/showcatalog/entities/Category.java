@@ -1,6 +1,5 @@
 package edu.uoc.epcsd.showcatalog.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -26,7 +25,6 @@ public class Category {
     @Column(name = "description", nullable = true)
     private String description;
 
-    @JsonIgnore
-    @ManyToMany(mappedBy = "categories")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "category", orphanRemoval = true)
     private List<Show> shows;
 }

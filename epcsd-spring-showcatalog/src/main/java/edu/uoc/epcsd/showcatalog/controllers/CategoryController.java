@@ -1,5 +1,6 @@
 package edu.uoc.epcsd.showcatalog.controllers;
 
+import edu.uoc.epcsd.showcatalog.dtos.CategoryDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
 import edu.uoc.epcsd.showcatalog.requests.CategoryRequest;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
@@ -25,18 +27,18 @@ public class CategoryController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Category> getAllCategories() {
+    public List<CategoryDTO> getAllCategories() {
         log.trace("getAllCategories");
-        return categoryRepository.findAll();
+        return mapListCategoryToDTO(categoryRepository.findAll());
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Category> getCategory(@PathVariable(value = "id") Long categoryId) {
+    public ResponseEntity<CategoryDTO> getCategory(@PathVariable(value = "id") Long categoryId) {
         log.trace("getCategory");
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category Not found for this id: " + categoryId));
-        return ResponseEntity.ok().body(category);
+        return ResponseEntity.ok().body(mapCategoryToDTO(category));
     }
 
 
@@ -66,6 +68,22 @@ public class CategoryController {
         category.setDescription(request.getDescription());
         category.setName(request.getName());
         return category;
+    }
+
+    private CategoryDTO mapCategoryToDTO(Category category) {
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(category.getId());
+        dto.setName(category.getName());
+        dto.setDescription(category.getDescription());
+        return dto;
+    }
+    
+    private List<CategoryDTO> mapListCategoryToDTO(List<Category> categories) {
+        List<CategoryDTO> listDto = new ArrayList<CategoryDTO>();
+        for (Category category : categories) {
+            listDto.add(mapCategoryToDTO(category));
+        }
+        return listDto;
     }
 
 }

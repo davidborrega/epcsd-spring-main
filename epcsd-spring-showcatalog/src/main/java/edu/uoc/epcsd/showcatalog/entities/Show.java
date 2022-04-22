@@ -45,23 +45,15 @@ public class Show {
     @Column(name = "status", nullable = false)
     private boolean status;
 
-    @ManyToMany(cascade = CascadeType.MERGE)
-    @JoinTable(
-            name = "show_categories",
-            joinColumns = @JoinColumn(name = "id_show"),
-            inverseJoinColumns = @JoinColumn(name = "id_category")
-    )
-    private List<Category> categories;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false, updatable = false)
+    private Category category;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "show", orphanRemoval = true)
     private List<Performance> performances;
 
     public void addPerformance(Performance performance) {
         this.performances.add(performance);
-    }
-
-    public void addCategory(Category category) {
-        this.categories.add(category);
     }
 
 }

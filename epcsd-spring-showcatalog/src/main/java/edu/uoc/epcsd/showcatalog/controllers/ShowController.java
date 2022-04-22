@@ -1,5 +1,7 @@
 package edu.uoc.epcsd.showcatalog.controllers;
 
+import edu.uoc.epcsd.showcatalog.dtos.CategoryDTO;
+import edu.uoc.epcsd.showcatalog.dtos.ShowDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.entities.Show;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
@@ -34,32 +36,32 @@ public class ShowController {
     private KafkaTemplate<String, Show> kafkaTemplate;
 
     @GetMapping
-    public List<Show> getShows(
+    public List<ShowDTO> getShows(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long categoryId
     ) {
         log.trace("getShows");
-        if (name.isEmpty() && categoryId <= 0) {
-            return showRepository.findAll();
+        if (name == null && categoryId == null) {
+            return mapListShowToDTO(showRepository.findAll());
         } else if (name.isEmpty()) {
             //return showRepository.findBy();
-            return showRepository.findAll();
+            return mapListShowToDTO(showRepository.findAll());
         } else if (categoryId <= 0) {
             //return showRepository.findBy();
-            return showRepository.findAll();
+            return mapListShowToDTO(showRepository.findAll());
         } else {
             //return showRepository.findBy();
-            return showRepository.findAll();
+            return mapListShowToDTO(showRepository.findAll());
         }
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Show> getShow(@PathVariable(value = "id") Long showId) {
+    public ResponseEntity<ShowDTO> getShow(@PathVariable(value = "id") Long showId) {
         log.trace("getShow");
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
-        return ResponseEntity.ok().body(show);
+        return ResponseEntity.ok().body(mapShowToDTO(show));
 
     }
 
@@ -91,17 +93,46 @@ public class ShowController {
         show.setImage(request.getImage());
         show.setCapacity(request.getCapacity());
         show.setPrice(request.getPrice());
+        show.setStatus(true);
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(
                     request.getCategoryId()).orElse(null);
             if (category != null) {
-                //show.addCategory(category);
-                show.setCategories(Arrays.asList(category));
+                show.setCategory(category);
             }
         }
 
         return show;
+    }
+
+    private ShowDTO mapShowToDTO(Show show) {
+        ShowDTO dto = new ShowDTO();
+        dto.setId(show.getId());
+        dto.setName(show.getName());
+        dto.setDescription(show.getDescription());
+        dto.setDuration(show.getDuration());
+        dto.setCapacity(show.getCapacity());
+        dto.setImage(show.getImage());
+        dto.setPrice(show.getPrice());
+        dto.setCategory(getCategoryDTO(show.getCategory()));
+        return dto;
+    }
+
+    private CategoryDTO getCategoryDTO(Category category) {
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(category.getId());
+        dto.setName(category.getName());
+        dto.setDescription(category.getDescription());
+        return dto;
+    }
+
+    private List<ShowDTO> mapListShowToDTO(List<Show> shows) {
+        List<ShowDTO> listDto = new ArrayList<ShowDTO>();
+        for (Show show : shows) {
+            listDto.add(mapShowToDTO(show));
+        }
+        return listDto;
     }
 
 }
