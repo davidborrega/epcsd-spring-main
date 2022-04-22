@@ -38,19 +38,20 @@ public class ShowController {
     @GetMapping
     public List<ShowDTO> getShows(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Long categoryId
+            @RequestParam(required = false) String categoryId
     ) {
         log.trace("getShows");
         if (name == null && categoryId == null) {
             return mapListShowToDTO(showRepository.findAll());
         } else if (name == null) {
-            //return showRepository.findBy();
+            // https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc
+            Category category = categoryRepository.findById(Long.parseLong(categoryId)).orElse(null);
+            //return mapListShowToDTO(showRepository.findShowsByCategory(category));
             return mapListShowToDTO(showRepository.findAll());
         } else if (categoryId == null) {
-            return mapListShowToDTO(showRepository.findByName(name));
+            return mapListShowToDTO(showRepository.findShowsByName(name));
         } else {
-            //return showRepository.findBy();
-            return mapListShowToDTO(showRepository.findAll());
+            return mapListShowToDTO(showRepository.findShowsByName(name));
         }
     }
 
