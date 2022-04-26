@@ -81,14 +81,7 @@ public class ShowController {
         log.trace("createShow");
         Show show = mapToShow(request);
         showRepository.save(show);
-
-        Show message = new Show();
-        message.setId(show.getId());
-        message.setName(show.getName());
-        message.setCategory(show.getCategory());
-
-        kafkaTemplate.send(kafkaTopicConfig.showAddTopic().name(), message);
-
+        kafkaTemplate.send(kafkaTopicConfig.showAddTopic().name(), show);
         return ResponseEntity.created(getLocation("/{id}", show)).build();
     }
 
