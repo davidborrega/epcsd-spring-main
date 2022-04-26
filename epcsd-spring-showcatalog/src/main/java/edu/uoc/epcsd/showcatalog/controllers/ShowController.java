@@ -6,6 +6,8 @@ import edu.uoc.epcsd.showcatalog.dtos.ShowDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.entities.Performance;
 import edu.uoc.epcsd.showcatalog.entities.Show;
+import edu.uoc.epcsd.showcatalog.kafka.KafkaConstants;
+import edu.uoc.epcsd.showcatalog.kafka.KafkaTopicConfig;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
 import edu.uoc.epcsd.showcatalog.repositories.ShowRepository;
 import edu.uoc.epcsd.showcatalog.requests.PerformanceRequest;
@@ -38,6 +40,9 @@ public class ShowController {
 
     @Autowired
     private KafkaTemplate<String, Show> kafkaTemplate;
+
+    @Autowired
+    private KafkaTopicConfig kafkaTopicConfig;
 
     @GetMapping
     public List<ShowDTO> getShows(
@@ -76,6 +81,14 @@ public class ShowController {
         log.trace("createShow");
         Show show = mapToShow(request);
         showRepository.save(show);
+
+        Show message = new Show();
+        message.setId(show.getId());
+        message.setName(show.getName());
+        message.setCategory(show.getCategory());
+
+        kafkaTemplate.send(kafkaTopicConfig.showAddTopic().name(), message);
+
         return ResponseEntity.created(getLocation("/{id}", show)).build();
     }
 
