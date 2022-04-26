@@ -6,8 +6,7 @@ import javax.persistence.*;
 import java.sql.Time;
 import java.sql.Date;
 
-@Entity
-@Table(name = "performances")
+@Embeddable
 @ToString
 @Getter
 @Setter
@@ -16,11 +15,6 @@ import java.sql.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Performance {
-
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @Column(name = "date", nullable = false)
     private Date date;
@@ -36,9 +30,5 @@ public class Performance {
 
     @Column(name = "status", nullable = false)
     private boolean status;
-
-    @ManyToOne
-    @JoinColumn(name = "show_id", nullable = false, updatable = false)
-    private Show show;
 
 }

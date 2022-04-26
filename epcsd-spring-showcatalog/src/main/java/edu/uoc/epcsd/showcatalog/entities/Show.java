@@ -4,7 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.sql.Date;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @ToString
@@ -49,8 +49,10 @@ public class Show {
     @JoinColumn(name = "category_id", nullable = false, updatable = false)
     private Category category;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "show", orphanRemoval = true)
-    private List<Performance> performances;
+    @ElementCollection(targetClass = Performance.class)
+    @JoinTable(name = "performance")
+    @JoinColumn(name = "show_id", referencedColumnName = "id")
+    private Set performances;
 
     public void addPerformance(Performance performance) {
         this.performances.add(performance);
