@@ -1,11 +1,14 @@
 package edu.uoc.epcsd.showcatalog.controllers;
 
 import edu.uoc.epcsd.showcatalog.dtos.CategoryDTO;
+import edu.uoc.epcsd.showcatalog.dtos.PerformanceDTO;
 import edu.uoc.epcsd.showcatalog.dtos.ShowDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
+import edu.uoc.epcsd.showcatalog.entities.Performance;
 import edu.uoc.epcsd.showcatalog.entities.Show;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
 import edu.uoc.epcsd.showcatalog.repositories.ShowRepository;
+import edu.uoc.epcsd.showcatalog.requests.PerformanceRequest;
 import edu.uoc.epcsd.showcatalog.requests.ShowRequest;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -20,6 +23,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Log4j2
 @RestController
@@ -38,20 +42,22 @@ public class ShowController {
     @GetMapping
     public List<ShowDTO> getShows(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String categoryId
+            @RequestParam(required = false) Long categoryId
     ) {
         log.trace("getShows");
         if (name == null && categoryId == null) {
-            return mapListShowToDTO(showRepository.findAll());
+            return mapShowListToDTO(showRepository.findAll());
         } else if (name == null) {
-            // https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc
-            Category category = categoryRepository.findById(Long.parseLong(categoryId)).orElse(null);
-            //return mapListShowToDTO(showRepository.findShowsByCategory(category));
-            return mapListShowToDTO(showRepository.findAll());
+            Category category = categoryRepository.findById(categoryId).orElse(null);
+            if (category != null) {
+                return mapShowListToDTO(showRepository.findShowsByCategory(category));
+            } else {
+                return new ArrayList<>();
+            }
         } else if (categoryId == null) {
-            return mapListShowToDTO(showRepository.findShowsByName(name));
+            return mapShowListToDTO(showRepository.findShowsByName(name));
         } else {
-            return mapListShowToDTO(showRepository.findShowsByName(name));
+            return mapShowListToDTO(showRepository.findShowsByName(name));
         }
     }
 
@@ -70,11 +76,27 @@ public class ShowController {
         log.trace("createShow");
         Show show = mapToShow(request);
         showRepository.save(show);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(show.getId())
-                .toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(getLocation("/{id}", show)).build();
+    }
+
+    @PostMapping("/{id}/open")
+    public ResponseEntity<String> openShow(@PathVariable(value = "id") Long showId) {
+        log.trace("open show for id: " + showId);
+        Show show = showRepository.findById(showId)
+                .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
+        show.setStatus(true);
+        showRepository.save(show);
+        return ResponseEntity.ok().body("Show with id: " + showId + " has updated as opened!");
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<String> cancelShow(@PathVariable(value = "id") Long showId) {
+        log.trace("open show for id: " + showId);
+        Show show = showRepository.findById(showId)
+                .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
+        show.setStatus(false);
+        showRepository.save(show);
+        return ResponseEntity.ok().body("Show with id: " + showId + " has updated as cancelled!");
     }
 
     @DeleteMapping("/{id}")
@@ -84,6 +106,26 @@ public class ShowController {
                 .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
         showRepository.delete(show);
         return ResponseEntity.ok().body("Show deleted with success!");
+    }
+
+    @GetMapping("/{id}/performance")
+    private List<PerformanceDTO> getPerformances(@PathVariable(value = "id") Long showId) {
+        log.trace("getShowPerformances of show id: " + showId);
+        Show show = showRepository.findById(showId)
+                .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
+        return mapPerformanceListToDTO(show.getPerformances());
+    }
+
+    @PostMapping("/{id}/performance")
+    public ResponseEntity<?> createPerformance(@PathVariable(value = "id") Long showId, @RequestBody @NonNull PerformanceRequest request) {
+        log.trace("createPerormance of show id: " + showId);
+        Show show = showRepository.findById(showId)
+                .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
+
+        show.addPerformance(mapToPerformance(request));
+        showRepository.save(show);
+
+        return ResponseEntity.created(getLocation("/{id}/performance", show)).build();
     }
 
     private Show mapToShow(ShowRequest request) {
@@ -96,13 +138,9 @@ public class ShowController {
         show.setStatus(true);
 
         if (request.getCategoryId() != null) {
-            Category category = categoryRepository.findById(
-                    request.getCategoryId()).orElse(null);
-            if (category != null) {
-                show.setCategory(category);
-            }
+            categoryRepository.findById(
+                    request.getCategoryId()).ifPresent(show::setCategory);
         }
-
         return show;
     }
 
@@ -127,12 +165,42 @@ public class ShowController {
         return dto;
     }
 
-    private List<ShowDTO> mapListShowToDTO(List<Show> shows) {
-        List<ShowDTO> listDto = new ArrayList<ShowDTO>();
+    private List<ShowDTO> mapShowListToDTO(List<Show> shows) {
+        List<ShowDTO> listDto = new ArrayList<>();
         for (Show show : shows) {
             listDto.add(mapShowToDTO(show));
         }
         return listDto;
+    }
+
+    private Performance mapToPerformance(PerformanceRequest request) {
+        Performance performance = new Performance();
+        performance.setDate(request.getDate());
+        performance.setTime(request.getTime());
+        performance.setStreamingURL(request.getStreamingURL());
+        performance.setRemainingSeats(500);
+        performance.setStatus(true);
+        return performance;
+    }
+
+    private List<PerformanceDTO> mapPerformanceListToDTO(Set<Performance> performances) {
+        List<PerformanceDTO> performancesDTO = new ArrayList<>();
+
+        for (Performance p : performances) {
+            PerformanceDTO performanceDTO = new PerformanceDTO();
+            performanceDTO.setStreamingURL(p.getStreamingURL());
+            performanceDTO.setDate(p.getDate());
+            performanceDTO.setTime(p.getTime());
+            performancesDTO.add(performanceDTO);
+        }
+        return performancesDTO;
+    }
+
+    private URI getLocation(String path, Show show) {
+        return ServletUriComponentsBuilder.fromCurrentRequest()
+                .path(path)
+                .buildAndExpand(show.getId())
+                .toUri();
     }
 
 }
