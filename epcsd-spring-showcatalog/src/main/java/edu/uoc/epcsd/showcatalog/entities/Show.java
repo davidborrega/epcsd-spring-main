@@ -39,11 +39,14 @@ public class Show {
     @Column(name = "capacity", nullable = false)
     private int capacity;
 
-    @Column(name = "onSaleDate", nullable = true)
-    private Date onSaleDate;
-
     @Column(name = "status", nullable = false)
     private boolean status;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false, updatable = false)
+    private Category category;
+
+    /*
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false, updatable = false)
@@ -57,5 +60,7 @@ public class Show {
     public void addPerformance(Performance performance) {
         this.performances.add(performance);
     }
+
+     */
 
 }

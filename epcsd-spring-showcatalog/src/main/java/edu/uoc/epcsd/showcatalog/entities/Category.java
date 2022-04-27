@@ -3,6 +3,7 @@ package edu.uoc.epcsd.showcatalog.entities;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
@@ -24,7 +25,9 @@ public class Category {
 
     @Column(name = "description", nullable = true)
     private String description;
-
+/*
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "category", orphanRemoval = true)
     private List<Show> shows;
+ */
+
 }

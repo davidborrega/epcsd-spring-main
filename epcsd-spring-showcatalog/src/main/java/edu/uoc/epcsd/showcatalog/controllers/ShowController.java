@@ -6,7 +6,6 @@ import edu.uoc.epcsd.showcatalog.dtos.ShowDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.entities.Performance;
 import edu.uoc.epcsd.showcatalog.entities.Show;
-import edu.uoc.epcsd.showcatalog.kafka.KafkaConstants;
 import edu.uoc.epcsd.showcatalog.kafka.KafkaTopicConfig;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
 import edu.uoc.epcsd.showcatalog.repositories.ShowRepository;
@@ -114,6 +113,7 @@ public class ShowController {
         return ResponseEntity.ok().body("Show deleted with success!");
     }
 
+    /*
     @GetMapping("/{id}/performance")
     private List<PerformanceDTO> getPerformances(@PathVariable(value = "id") Long showId) {
         log.trace("getShowPerformances of show id: " + showId);
@@ -133,7 +133,7 @@ public class ShowController {
 
         return ResponseEntity.created(getLocation("/{id}/performance", show)).build();
     }
-
+ */
     private Show mapToShow(ShowRequest request) {
         Show show = new Show();
         show.setName(request.getName());
@@ -142,7 +142,6 @@ public class ShowController {
         show.setCapacity(request.getCapacity());
         show.setPrice(request.getPrice());
         show.setStatus(true);
-
         if (request.getCategoryId() != null) {
             categoryRepository.findById(
                     request.getCategoryId()).ifPresent(show::setCategory);

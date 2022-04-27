@@ -12,5 +12,4 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
 
     List<Show> findShowsByCategory(Category category);
 
-
 }

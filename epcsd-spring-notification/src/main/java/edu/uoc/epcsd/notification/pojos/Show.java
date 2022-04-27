@@ -17,5 +17,5 @@ public class Show {
 
     private String name;
 
-    private List<Category> categories;
+    private Category category;
 }

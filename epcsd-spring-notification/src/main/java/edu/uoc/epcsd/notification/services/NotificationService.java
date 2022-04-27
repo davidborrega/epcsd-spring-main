@@ -15,11 +15,9 @@ public class NotificationService {
     private UserService userService;    // mock service
 
     public void notifyShowCreation(Show show) {
-
-        for (Category category : show.getCategories()) {
-            for (User user : userService.getUsersByFavouriteCategory(category)) {
-                notifyUser(user, show);
-            }
+        Category category = show.getCategory();
+        for (User user : userService.getUsersByFavouriteCategory(category)) {
+            notifyUser(user, show);
         }
     }
 
