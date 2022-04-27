@@ -113,7 +113,6 @@ public class ShowController {
         return ResponseEntity.ok().body("Show deleted with success!");
     }
 
-    /*
     @GetMapping("/{id}/performance")
     private List<PerformanceDTO> getPerformances(@PathVariable(value = "id") Long showId) {
         log.trace("getShowPerformances of show id: " + showId);
@@ -133,7 +132,7 @@ public class ShowController {
 
         return ResponseEntity.created(getLocation("/{id}/performance", show)).build();
     }
- */
+
     private Show mapToShow(ShowRequest request) {
         Show show = new Show();
         show.setName(request.getName());

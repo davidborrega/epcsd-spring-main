@@ -3,7 +3,6 @@ package edu.uoc.epcsd.showcatalog.entities;
 import lombok.*;
 
 import javax.persistence.*;
-import java.sql.Date;
 import java.util.Set;
 
 @Entity
@@ -46,12 +45,6 @@ public class Show {
     @JoinColumn(name = "category_id", nullable = false, updatable = false)
     private Category category;
 
-    /*
-
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false, updatable = false)
-    private Category category;
-
     @ElementCollection(targetClass = Performance.class)
     @JoinTable(name = "performance")
     @JoinColumn(name = "show_id", referencedColumnName = "id")
@@ -60,7 +53,5 @@ public class Show {
     public void addPerformance(Performance performance) {
         this.performances.add(performance);
     }
-
-     */
 
 }
