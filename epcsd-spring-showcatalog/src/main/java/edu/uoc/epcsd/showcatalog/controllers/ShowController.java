@@ -1,12 +1,12 @@
 package edu.uoc.epcsd.showcatalog.controllers;
 
-import edu.uoc.epcsd.showcatalog.dtos.CategoryDTO;
 import edu.uoc.epcsd.showcatalog.dtos.PerformanceDTO;
 import edu.uoc.epcsd.showcatalog.dtos.ShowDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
-import edu.uoc.epcsd.showcatalog.entities.Performance;
 import edu.uoc.epcsd.showcatalog.entities.Show;
 import edu.uoc.epcsd.showcatalog.kafka.KafkaTopicConfig;
+import edu.uoc.epcsd.showcatalog.mappers.PerformanceMapper;
+import edu.uoc.epcsd.showcatalog.mappers.ShowMapper;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
 import edu.uoc.epcsd.showcatalog.repositories.ShowRepository;
 import edu.uoc.epcsd.showcatalog.requests.PerformanceRequest;
@@ -24,7 +24,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Log4j2
 @RestController
@@ -43,6 +42,10 @@ public class ShowController {
     @Autowired
     private KafkaTopicConfig kafkaTopicConfig;
 
+    private ShowMapper showMapper = new ShowMapper();
+
+    private PerformanceMapper performanceMapper = new PerformanceMapper();
+
     @GetMapping
     public List<ShowDTO> getShows(
             @RequestParam(required = false) String name,
@@ -50,18 +53,18 @@ public class ShowController {
     ) {
         log.trace("getShows");
         if (name == null && categoryId == null) {
-            return mapShowListToDTO(showRepository.findAll());
+            return showMapper.mapListToDTO(showRepository.findAll());
         } else if (name == null) {
             Category category = categoryRepository.findById(categoryId).orElse(null);
             if (category != null) {
-                return mapShowListToDTO(showRepository.findShowsByCategory(category));
+                return showMapper.mapListToDTO(showRepository.findShowsByCategory(category));
             } else {
                 return new ArrayList<>();
             }
         } else if (categoryId == null) {
-            return mapShowListToDTO(showRepository.findShowsByName(name));
+            return showMapper.mapListToDTO(showRepository.findShowsByName(name));
         } else {
-            return mapShowListToDTO(showRepository.findShowsByName(name));
+            return showMapper.mapListToDTO(showRepository.findShowsByName(name));
         }
     }
 
@@ -71,7 +74,7 @@ public class ShowController {
         log.trace("getShow");
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
-        return ResponseEntity.ok().body(mapShowToDTO(show));
+        return ResponseEntity.ok().body(showMapper.mapToDTO(show));
 
     }
 
@@ -118,7 +121,7 @@ public class ShowController {
         log.trace("getShowPerformances of show id: " + showId);
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
-        return mapPerformanceListToDTO(show.getPerformances());
+        return performanceMapper.mapToDTO(show.getPerformances());
     }
 
     @PostMapping("/{id}/performance")
@@ -127,7 +130,7 @@ public class ShowController {
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
 
-        show.addPerformance(mapToPerformance(request));
+        show.addPerformance(performanceMapper.map(request));
         showRepository.save(show);
 
         return ResponseEntity.created(getLocation("/{id}/performance", show)).build();
@@ -146,58 +149,6 @@ public class ShowController {
                     request.getCategoryId()).ifPresent(show::setCategory);
         }
         return show;
-    }
-
-    private ShowDTO mapShowToDTO(Show show) {
-        ShowDTO dto = new ShowDTO();
-        dto.setId(show.getId());
-        dto.setName(show.getName());
-        dto.setDescription(show.getDescription());
-        dto.setDuration(show.getDuration());
-        dto.setCapacity(show.getCapacity());
-        dto.setImage(show.getImage());
-        dto.setPrice(show.getPrice());
-        dto.setCategory(getCategoryDTO(show.getCategory()));
-        return dto;
-    }
-
-    private CategoryDTO getCategoryDTO(Category category) {
-        CategoryDTO dto = new CategoryDTO();
-        dto.setId(category.getId());
-        dto.setName(category.getName());
-        dto.setDescription(category.getDescription());
-        return dto;
-    }
-
-    private List<ShowDTO> mapShowListToDTO(List<Show> shows) {
-        List<ShowDTO> listDto = new ArrayList<>();
-        for (Show show : shows) {
-            listDto.add(mapShowToDTO(show));
-        }
-        return listDto;
-    }
-
-    private Performance mapToPerformance(PerformanceRequest request) {
-        Performance performance = new Performance();
-        performance.setDate(request.getDate());
-        performance.setTime(request.getTime());
-        performance.setStreamingURL(request.getStreamingURL());
-        performance.setRemainingSeats(500);
-        performance.setStatus(true);
-        return performance;
-    }
-
-    private List<PerformanceDTO> mapPerformanceListToDTO(Set<Performance> performances) {
-        List<PerformanceDTO> performancesDTO = new ArrayList<>();
-
-        for (Performance p : performances) {
-            PerformanceDTO performanceDTO = new PerformanceDTO();
-            performanceDTO.setStreamingURL(p.getStreamingURL());
-            performanceDTO.setDate(p.getDate());
-            performanceDTO.setTime(p.getTime());
-            performancesDTO.add(performanceDTO);
-        }
-        return performancesDTO;
     }
 
     private URI getLocation(String path, Show show) {
