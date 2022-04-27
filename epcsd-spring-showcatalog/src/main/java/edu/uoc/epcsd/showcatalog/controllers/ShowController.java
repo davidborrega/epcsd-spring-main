@@ -42,9 +42,9 @@ public class ShowController {
     @Autowired
     private KafkaTopicConfig kafkaTopicConfig;
 
-    private ShowMapper showMapper = new ShowMapper();
+    private final ShowMapper showMapper = new ShowMapper();
 
-    private PerformanceMapper performanceMapper = new PerformanceMapper();
+    private final PerformanceMapper performanceMapper = new PerformanceMapper();
 
     @GetMapping
     public List<ShowDTO> getShows(
