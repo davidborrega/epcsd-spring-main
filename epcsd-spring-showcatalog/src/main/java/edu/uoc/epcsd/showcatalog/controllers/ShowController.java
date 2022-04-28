@@ -1,5 +1,6 @@
 package edu.uoc.epcsd.showcatalog.controllers;
 
+import edu.uoc.epcsd.showcatalog.dtos.IdentifierDTO;
 import edu.uoc.epcsd.showcatalog.dtos.PerformanceDTO;
 import edu.uoc.epcsd.showcatalog.dtos.ShowDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
@@ -79,32 +80,34 @@ public class ShowController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createShow(@RequestBody @NonNull ShowRequest request) {
+    public ResponseEntity<IdentifierDTO> createShow(@RequestBody @NonNull ShowRequest request) {
         log.trace("createShow");
         Show show = mapToShow(request);
         showRepository.save(show);
         kafkaTemplate.send(kafkaTopicConfig.showAddTopic().name(), show);
-        return ResponseEntity.created(getLocation("/{id}", show)).build();
+        IdentifierDTO idDTO = new IdentifierDTO();
+        idDTO.setId(show.getId());
+        return ResponseEntity.ok().body(idDTO);
     }
 
     @PostMapping("/{id}/open")
-    public ResponseEntity<String> openShow(@PathVariable(value = "id") Long showId) {
+    public ResponseEntity<Boolean> openShow(@PathVariable(value = "id") Long showId) {
         log.trace("open show for id: " + showId);
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
         show.setStatus(true);
         showRepository.save(show);
-        return ResponseEntity.ok().body("Show with id: " + showId + " has updated as opened!");
+        return ResponseEntity.ok().body(true);
     }
 
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<String> cancelShow(@PathVariable(value = "id") Long showId) {
+    public ResponseEntity<Boolean> cancelShow(@PathVariable(value = "id") Long showId) {
         log.trace("open show for id: " + showId);
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new ResourceNotFoundException("Show Not found for this id: " + showId));
         show.setStatus(false);
         showRepository.save(show);
-        return ResponseEntity.ok().body("Show with id: " + showId + " has updated as cancelled!");
+        return ResponseEntity.ok().body(true);
     }
 
     @DeleteMapping("/{id}")

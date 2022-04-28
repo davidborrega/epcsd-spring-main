@@ -1,6 +1,7 @@
 package edu.uoc.epcsd.showcatalog.controllers;
 
 import edu.uoc.epcsd.showcatalog.dtos.CategoryDTO;
+import edu.uoc.epcsd.showcatalog.dtos.IdentifierDTO;
 import edu.uoc.epcsd.showcatalog.entities.Category;
 import edu.uoc.epcsd.showcatalog.mappers.CategoryMapper;
 import edu.uoc.epcsd.showcatalog.repositories.CategoryRepository;
@@ -45,15 +46,13 @@ public class CategoryController {
 
 
     @PostMapping
-    public ResponseEntity<?> createCategory(@RequestBody @NonNull CategoryRequest request) {
+    public ResponseEntity<IdentifierDTO> createCategory(@RequestBody @NonNull CategoryRequest request) {
         log.trace("createCategory");
         Category category = mapper.mapToCategory(request);
         categoryRepository.save(category);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(category.getId())
-                .toUri();
-        return ResponseEntity.created(location).build();
+        IdentifierDTO idDTO = new IdentifierDTO();
+        idDTO.setId(category.getId());
+        return ResponseEntity.ok().body(idDTO);
     }
 
     @DeleteMapping("/{id}")
